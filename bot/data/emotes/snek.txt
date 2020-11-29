@@ -1,0 +1,7 @@
+:relaxed:
+:snake:
+:whale:
+:turtle:
+:sparkles:
+:tanabata_tree:
+:nose:
