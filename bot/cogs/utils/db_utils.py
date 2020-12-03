@@ -18,3 +18,29 @@ def stats_increment(mongo_client, user, field, value=1):
 		client.update_one({'user': user.id}, {'$inc': {field: value}})
 	except Exception as e:
 		print(f"{e}: could not increment {field} for {user} in db")
+
+
+# get a user's profile stats
+def get_user(mongo_client, user):
+	profile_template = {
+		'sneks': {
+			'send_count': 0,
+			'recv_count': 0
+		},
+		'smaks': {
+			'send_count': 0,
+			'recv_count': 0	
+		},
+		'xd': {
+			'count': 0
+		}
+	}
+
+	client  = mongo_client['stats']['users']
+	profile = client.find_one({'user': user.id}, {'_id': False, 'user': False})
+
+	for stat in profile.keys():
+		if stat in profile_template:
+			profile_template[stat].update(profile[stat])
+
+	return profile_template

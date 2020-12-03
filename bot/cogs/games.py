@@ -2,11 +2,12 @@ import asyncio
 import random
 import sys
 import os
+import re
 from dotenv import load_dotenv
 
 from .utils import db_utils
 from .utils import file_utils
-from .utils.embed_utils import Anui_Embed
+from .utils.embed_utils import AnuiEmbed
 
 from .utils.mapquest import Mapquest
 
@@ -34,20 +35,22 @@ class Games(commands.Cog):
 
 	def latlong_format(self, content):
 		try:
-			vals = content.split(",")
+			# split any non-alphanumeric characters
+			vals = re.split('\W+', content)
 			lat  = float(vals[0].strip())
 			lng  = float(vals[1].strip())
 
 			if lat <= 90 and lat > -90 and lng > -180 and lng <= 180:
 				return (lat, lng)
 		except Exception as e:
+			print(f"latlong_format() exception: {e}")
 			return None
 
 	@commands.command(name='game')
 	@commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
 	async def _game(self, ctx, game):
 		"""play a minigame!"""
-		duration = 25
+		duration = 20
 
 		if game.lower() in ['latlong', 'll']:
 			api = Mapquest(MAPQUEST_KEY)
@@ -59,7 +62,7 @@ class Games(commands.Cog):
 			results       = location_data['results'][0]
 			location_str  = results['providedLocation']['location']
 			location_url  = results['locations'][0]['mapUrl'].split('|')[0]
-			start_embed   = Anui_Embed().latlong_start(location=location_str, duration=duration, url=location_url)
+			start_embed   = AnuiEmbed().latlong_start(location=location_str, duration=duration, url=location_url)
 			start_message = await ctx.send(embed=start_embed)
 
 			latitude_longitude = results['locations'][0]['latLng']
@@ -77,7 +80,7 @@ class Games(commands.Cog):
 
 			# display results
 			leaderboard      = sorted(answers.items(), key=lambda x: x[1])
-			scoreboard_embed = Anui_Embed().latlong_scoreboard(leaderboard=leaderboard, location=location_str, url=location_url)
+			scoreboard_embed = AnuiEmbed().latlong_scoreboard(leaderboard=leaderboard, location=location_str, url=location_url)
 			await ctx.send(embed=scoreboard_embed)
 
 	@_game.error
