@@ -11,13 +11,25 @@ from datetime import datetime
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from cogs.utils.msg_utils import MsgAnalyzer
+
 import discord
+import pymongo
 
 # load env variables
 load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+MONGO_URI     = os.getenv('MONGO_URI')
 
-bot = commands.Bot(command_prefix="!")
+# create bot
+bot  = commands.Bot(command_prefix="!")
+
+# connect to MongoDB
+mongo_client     = pymongo.MongoClient(MONGO_URI)
+bot.mongo_client = mongo_client
+
+# create message analyzer
+msga = MsgAnalyzer(bot.mongo_client)
 
 # extensions for commands found in cogs folder
 extensions = [
@@ -41,6 +53,9 @@ async def on_message(message):
 			await bot.process_commands(message)
 		except Exception as e:
 			print(e, file=sys.stderr)
+
+		await msga.xd_counter(message)
+
 
 @bot.event
 async def on_ready():
